@@ -1,49 +1,95 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert } from "react-native";
+import { View, Text, StyleSheet, TextInput, Button, Alert } from "react-native";
 
 export default function Edad({ navigation }: any) {
-  const [age, setAge] = useState("");
+  const [day, setDay] = useState("");
+  const [month, setMonth] = useState("");
+  const [year, setYear] = useState("");
+  const [error, setError] = useState("");
 
-  const handleCheckAge = () => {
-    const ageNumber = parseInt(age);
+  // Función para calcular edad a partir de fecha
+  const calcularEdad = (fechaNacimiento: Date) => {
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+    const m = hoy.getMonth() - fechaNacimiento.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < fechaNacimiento.getDate())) {
+      edad--;
+    }
+    return edad;
+  };
 
-    if (isNaN(ageNumber)) {
-      Alert.alert("Error", "Por favor ingresa un número válido.");
+  // Validar que la fecha sea válida
+  const esFechaValida = (d: number, m: number, y: number) => {
+    const fecha = new Date(y, m - 1, d);
+    return (
+      fecha.getFullYear() === y &&
+      fecha.getMonth() === m - 1 &&
+      fecha.getDate() === d
+    );
+  };
+
+  const handleContinuar = () => {
+    const d = parseInt(day);
+    const m = parseInt(month);
+    const y = parseInt(year);
+
+    if (!d || !m || !y) {
+      setError("Por favor completa todos los campos con números.");
       return;
     }
 
-    if (ageNumber >= 18) {
-      navigation.navigate("InicioApp");
-    } else {
-      Alert.alert("Acceso Denegado", "Debes ser mayor de 18 años para ingresar.");
+    if (!esFechaValida(d, m, y)) {
+      setError("Fecha inválida, revisa los datos.");
+      return;
     }
 
-    setAge("");
+    const fechaNacimiento = new Date(y, m - 1, d);
+    const edad = calcularEdad(fechaNacimiento);
+
+    if (edad < 18) {
+      setError("Debes ser mayor de 18 años para usar la app.");
+    } else if (edad > 80) {
+      setError("No puedes tener más de 80 años para usar la app.");
+    } else {
+      setError("");
+      navigation.navigate("InicioApp");
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Ingrese su edad:</Text>
+      <Text style={styles.title}>Ingresa tu fecha de nacimiento</Text>
 
-      <TextInput 
-        style={styles.input}
-        keyboardType="numeric"
-        placeholder="Edad"
-        placeholderTextColor="#888"
-        value={age}
-        onChangeText={setAge}
-      />
+      <View style={styles.row}>
+        <TextInput
+          style={styles.input}
+          placeholder="Día"
+          keyboardType="number-pad"
+          maxLength={2}
+          value={day}
+          onChangeText={setDay}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Mes"
+          keyboardType="number-pad"
+          maxLength={2}
+          value={month}
+          onChangeText={setMonth}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Año"
+          keyboardType="number-pad"
+          maxLength={4}
+          value={year}
+          onChangeText={setYear}
+        />
+      </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleCheckAge}>
-        <Text style={styles.buttonText}>Verificar</Text>
-      </TouchableOpacity>
+      {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <TouchableOpacity 
-        style={[styles.button, { backgroundColor: "#888", marginTop: 20 }]}
-        onPress={() => navigation.goBack()}
-      >
-        <Text style={styles.buttonText}>Regresar</Text>
-      </TouchableOpacity>
+      <Button title="Continuar" onPress={handleContinuar} />
     </View>
   );
 }
@@ -52,36 +98,32 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FF0000",
-    alignItems: "center",
     justifyContent: "center",
     padding: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "bold",
-    color: "#000000",
+    color: "#000",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 20,
   },
   input: {
-    width: "80%",
-    padding: 10,
-    borderWidth: 1,
-    borderColor: "#000000",
+    backgroundColor: "#fff",
+    width: "30%",
+    padding: 15,
     borderRadius: 10,
-    backgroundColor: "#ffffff",
-    marginBottom: 20,
-    textAlign: "center",
     fontSize: 18,
+    textAlign: "center",
   },
-  button: {
-    backgroundColor: "#000000",
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 10,
-  },
-  buttonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "bold",
+  error: {
+    color: "#000",
+    marginBottom: 10,
+    textAlign: "center",
   },
 });

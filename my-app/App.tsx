@@ -1,7 +1,7 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { StyleSheet, Text, View, TouchableOpacity, Image } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, Image,Modal } from "react-native";
 import Edad from "./Edad";
 import InicioApp from "./InicioApp";
 
@@ -20,16 +20,24 @@ export default function App() {
 }
 
 function HomeScreen({ navigation }: any) {
+  const [showModal, setShowModal] = React.useState(false);
+
+  const handleIniciar = () => {
+    setShowModal(true);
+  };
+
+  const handleAceptar = () => {
+    setShowModal(false);
+    navigation.navigate("Edad");
+  };
+
   return (
     <View style={styles.container}>
       <Image source={require("./assets/fondo.png")} style={styles.image} />
       <Text style={styles.name}>Anonymous</Text>
       <View style={styles.separator} />
 
-      <TouchableOpacity 
-        style={styles.button} 
-        onPress={() => navigation.navigate("Edad")}
-      >
+      <TouchableOpacity style={styles.button} onPress={handleIniciar}>
         <Text style={styles.buttonText}>Iniciar</Text>
       </TouchableOpacity>
 
@@ -38,9 +46,31 @@ function HomeScreen({ navigation }: any) {
           Un espacio para expresarte sin revelar tu identidad.
         </Text>
       </View>
+
+      {/* Modal de Términos */}
+      <Modal
+        visible={showModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Términos y Condiciones</Text>
+            <Text style={styles.modalText}>
+              Al usar esta app aceptas mantener el respeto y no compartir contenido ofensivo o ilegal. Esta app es anónima, pero el mal uso puede llevar a restricciones.
+            </Text>
+
+            <TouchableOpacity style={styles.modalButton} onPress={handleAceptar}>
+              <Text style={styles.modalButtonText}>Aceptar y continuar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -91,4 +121,38 @@ const styles = StyleSheet.create({
     textAlign: "center",
     bottom: 80,
   },
+    modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 20,
+    width: "100%",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  modalButton: {
+    backgroundColor: "#FF0000",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+
 });
