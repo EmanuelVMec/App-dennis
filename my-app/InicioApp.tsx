@@ -23,7 +23,7 @@ export default function InicioApp() {
     Electromecanica: [],
     Turismo: [],
   });
-  const [selectedCareer, setSelectedCareer] = useState<string>("Select a career");
+  const [selectedCareer, setSelectedCareer] = useState<string>("Seleccione una Carrera");
   const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
   const [newComment, setNewComment] = useState<string>("");
 
