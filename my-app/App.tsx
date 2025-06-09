@@ -1,9 +1,11 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { StyleSheet, Text, View, TouchableOpacity, Image,Modal } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, Image, Modal } from "react-native";
 import Edad from "./Edad";
 import InicioApp from "./InicioApp";
+import LoginScreen from "./LoginScreen";        // 🔹 Agregado
+import RegisterScreen from "./RegisterScreen";  // 🔹 Agregado
 
 const Stack = createNativeStackNavigator();
 
@@ -12,12 +14,15 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="LoginScreen" component={LoginScreen} />
+        <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
         <Stack.Screen name="Edad" component={Edad} />
         <Stack.Screen name="InicioApp" component={InicioApp} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
+
 
 function HomeScreen({ navigation }: any) {
   const [showModal, setShowModal] = React.useState(false);
@@ -28,7 +33,7 @@ function HomeScreen({ navigation }: any) {
 
   const handleAceptar = () => {
     setShowModal(false);
-    navigation.navigate("Edad");
+    navigation.navigate("LoginScreen");
   };
 
   return (
@@ -60,8 +65,10 @@ function HomeScreen({ navigation }: any) {
             <Text style={styles.modalText}>
               Al usar esta app aceptas mantener el respeto y no compartir contenido ofensivo o ilegal. Esta app es anónima, pero el mal uso puede llevar a restricciones.
             </Text>
-
-            <TouchableOpacity style={styles.modalButton} onPress={handleAceptar}>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={handleAceptar}
+            >
               <Text style={styles.modalButtonText}>Aceptar y continuar</Text>
             </TouchableOpacity>
           </View>
@@ -70,7 +77,6 @@ function HomeScreen({ navigation }: any) {
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -121,7 +127,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     bottom: 80,
   },
-    modalOverlay: {
+  modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.7)",
     justifyContent: "center",
@@ -154,5 +160,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
-
 });
