@@ -8,5 +8,5 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('api/send/', views.send_message, name='send_message'),
-    path('api/messages/', views.get_messages, name='get_messages'),
+    path('api/messages/<int:carrera_id>/', views.get_messages_by_carrera, name='get_messages_by_carrera'),
 ]

@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Message
+from .models import Carrera, Message
 import json
 
 @csrf_exempt
@@ -42,16 +42,32 @@ def logout_view(request):
 
 @csrf_exempt
 def send_message(request):
-    if request.method == "POST":
-        if not request.user.is_authenticated:
-            return JsonResponse({"error": "No autenticado"}, status=401)
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Usuario no autenticado"}, status=400)
+
+    try:
         data = json.loads(request.body)
-        text = data.get("text", "").strip()
+        print(data)  # Verifica qué datos se están recibiendo
+        text = data.get("text")
+        carrera_id = data.get("carrera_id")
+
         if not text:
-            return JsonResponse({"error": "Mensaje vacío"}, status=400)
-        Message.objects.create(user=request.user, text=text)
-        return JsonResponse({"message": "Mensaje enviado"})
-    return JsonResponse({"error": "Método no permitido"}, status=405)
+            return JsonResponse({"error": "No se proporcionó texto para el mensaje"}, status=400)
+
+        carrera = None
+        if carrera_id:
+            try:
+                carrera = Carrera.objects.get(id=carrera_id)
+            except Carrera.DoesNotExist:
+                return JsonResponse({"error": "Carrera no encontrada"}, status=400)
+
+        Message.objects.create(user=request.user, text=text, carrera=carrera)
+        return JsonResponse({"message": "Mensaje enviado correctamente"})
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Solicitud mal formada"}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 def get_messages(request):
     if request.method == "GET":
@@ -64,3 +80,9 @@ def get_messages(request):
         ]
         return JsonResponse(data, safe=False)
     return JsonResponse({"error": "Método no permitido"}, status=405)
+
+def get_messages_by_carrera(request, carrera_id):
+    if request.method == "GET":
+        messages = Message.objects.filter(carrera_id=carrera_id).order_by('created_at')
+        messages_data = [{"text": message.text, "user": message.user.username, "created_at": message.created_at} for message in messages]
+        return JsonResponse({"messages": messages_data})

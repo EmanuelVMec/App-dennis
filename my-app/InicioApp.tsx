@@ -5,38 +5,49 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
-  StyleSheet,
+  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
-  Keyboard,
   TouchableWithoutFeedback,
   StatusBar,
+  Keyboard,
+  StyleSheet, // Asegúrate de importar StyleSheet aquí
 } from "react-native";
+import { Picker } from "@react-native-picker/picker";
 
-import { BASE_URL } from "./config";
 
 export default function InicioApp() {
   const [mensaje, setMensaje] = useState("");
   const [mensajes, setMensajes] = useState<
     { text: string; reactions: string[]; comments: string[]; selectedCommentIndex: number | null }[]
   >([]);
-  const [selectedCommentIndex, setSelectedCommentIndex] = useState<number | null>(null);
   const [newComment, setNewComment] = useState<string>("");
   const [isReactionsVisible, setIsReactionsVisible] = useState<boolean>(false);
   const [selectedMessageIndex, setSelectedMessageIndex] = useState<number | null>(null);
+  const [selectedCarrera, setSelectedCarrera] = useState<number | null>(null);  // Nuevo estado para la carrera seleccionada
 
   const emojis = ["👍", "❤️", "😂", "😮", "😢", "😡"];
   const flatListRef = useRef<FlatList>(null);
 
+  const carreras = [
+    { id: 1, nombre: "Sistemas de Información" },
+    { id: 2, nombre: "Electromecánica" },
+    { id: 3, nombre: "Turismo" },
+    { id: 4, nombre: "Agroindustria" },
+    { id: 5, nombre: "Contabilidad" },
+    { id: 6, nombre: "Administración de Empresas" },
+  ];
+
+  // Función para cargar mensajes por carrera
   const cargarMensajes = async () => {
+    if (selectedCarrera === null) return;  // No cargar si no hay carrera seleccionada
     try {
-      const response = await fetch("http://192.168.89.18:8000/api/messages/", {
+      const response = await fetch(`http://192.168.100.7:8000/api/messages/${selectedCarrera}/`, {
         credentials: "include",
       });
       const data = await response.json();
       setMensajes(
-        data.map((msg: any) => ({
+        data.messages.map((msg: any) => ({
           text: msg.text,
           reactions: msg.reactions || [],
           comments: msg.comments || [],
@@ -49,30 +60,41 @@ export default function InicioApp() {
   };
 
   useEffect(() => {
-    cargarMensajes();
-  }, []);
+    if (selectedCarrera !== null) {
+      cargarMensajes();  // Cargar los mensajes al seleccionar una carrera
+    }
+  }, [selectedCarrera]);
 
   useEffect(() => {
     flatListRef.current?.scrollToEnd({ animated: true });
   }, [mensajes]);
 
-  const enviarMensaje = async () => {
-    if (mensaje.trim() === "") return;
-    try {
-      const response = await fetch("http://192.168.89.18:8000/api/send/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ text: mensaje }),
-      });
-      if (response.ok) {
-        await cargarMensajes();
-        setMensaje("");
-      }
-    } catch (error) {
-      console.error("Error al enviar mensaje:", error);
+const enviarMensaje = async () => {
+  if (mensaje.trim() === "" || selectedCarrera === null) return; // No enviar si no hay carrera seleccionada
+  console.log("Carrera seleccionada:", selectedCarrera);  // Verifica el valor de carrera_id
+  try {
+    const response = await fetch("http://192.168.100.7:8000/api/send/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        text: mensaje, 
+        carrera_id: selectedCarrera,  // Envía el ID de la carrera
+      }),
+    });
+    if (response.ok) {
+      await cargarMensajes(); // Recargar los mensajes después de enviar
+      setMensaje("");
+    } else {
+      const errorData = await response.json();
+      console.error("Error al enviar mensaje:", errorData);
     }
-  };
+  } catch (error) {
+    console.error("Error al enviar mensaje:", error);
+  }
+};
+
+
 
   const agregarComentario = (index: number) => {
     if (newComment.trim() === "") return;
@@ -118,6 +140,17 @@ export default function InicioApp() {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={{ flex: 1, padding: 10 }}>
+            {/* Picker para seleccionar la carrera */}
+            <Picker
+              selectedValue={selectedCarrera}
+              onValueChange={setSelectedCarrera}
+            >
+              <Picker.Item label="Selecciona una carrera" value={null} />
+              {carreras.map((carrera) => (
+                <Picker.Item key={carrera.id} label={carrera.nombre} value={carrera.id} />
+              ))}
+            </Picker>
+
             <FlatList
               ref={flatListRef}
               data={mensajes}
