@@ -11,10 +11,10 @@ import {
   TouchableWithoutFeedback,
   StatusBar,
   Keyboard,
+  Button, // Importa el componente Button
   StyleSheet, // Asegúrate de importar StyleSheet aquí
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-
 
 export default function InicioApp() {
   const [mensaje, setMensaje] = useState("");
@@ -66,35 +66,34 @@ export default function InicioApp() {
   }, [selectedCarrera]);
 
   useEffect(() => {
+    // Desplazar hacia el final cuando nuevos mensajes lleguen
     flatListRef.current?.scrollToEnd({ animated: true });
   }, [mensajes]);
 
-const enviarMensaje = async () => {
-  if (mensaje.trim() === "" || selectedCarrera === null) return; // No enviar si no hay carrera seleccionada
-  console.log("Carrera seleccionada:", selectedCarrera);  // Verifica el valor de carrera_id
-  try {
-    const response = await fetch("http://192.168.100.7:8000/api/send/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        text: mensaje, 
-        carrera_id: selectedCarrera,  // Envía el ID de la carrera
-      }),
-    });
-    if (response.ok) {
-      await cargarMensajes(); // Recargar los mensajes después de enviar
-      setMensaje("");
-    } else {
-      const errorData = await response.json();
-      console.error("Error al enviar mensaje:", errorData);
+  const enviarMensaje = async () => {
+    if (mensaje.trim() === "" || selectedCarrera === null) return; // No enviar si no hay carrera seleccionada
+    console.log("Carrera seleccionada:", selectedCarrera);  // Verifica el valor de carrera_id
+    try {
+      const response = await fetch("http://192.168.100.7:8000/api/send/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          text: mensaje,
+          carrera_id: selectedCarrera,  // Envía el ID de la carrera
+        }),
+      });
+      if (response.ok) {
+        await cargarMensajes(); // Recargar los mensajes después de enviar
+        setMensaje("");
+      } else {
+        const errorData = await response.json();
+        console.error("Error al enviar mensaje:", errorData);
+      }
+    } catch (error) {
+      console.error("Error al enviar mensaje:", error);
     }
-  } catch (error) {
-    console.error("Error al enviar mensaje:", error);
-  }
-};
-
-
+  };
 
   const agregarComentario = (index: number) => {
     if (newComment.trim() === "") return;
@@ -130,6 +129,10 @@ const enviarMensaje = async () => {
     setSelectedMessageIndex(index);
   };
 
+  const handleRefresh = () => {
+    cargarMensajes(); // Recargar los mensajes cuando el usuario presione el botón de refrescar
+  };
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <StatusBar barStyle="dark-content" />
@@ -141,15 +144,17 @@ const enviarMensaje = async () => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={{ flex: 1, padding: 10 }}>
             {/* Picker para seleccionar la carrera */}
-            <Picker
-              selectedValue={selectedCarrera}
-              onValueChange={setSelectedCarrera}
-            >
+            <Picker selectedValue={selectedCarrera} onValueChange={setSelectedCarrera}>
               <Picker.Item label="Selecciona una carrera" value={null} />
               {carreras.map((carrera) => (
                 <Picker.Item key={carrera.id} label={carrera.nombre} value={carrera.id} />
               ))}
             </Picker>
+
+            {/* Botón de Refrescar */}
+            <View style={{ alignItems: "flex-end", marginBottom: 10 }}>
+              <Button title="Refrescar" onPress={handleRefresh} />
+            </View>
 
             <FlatList
               ref={flatListRef}
