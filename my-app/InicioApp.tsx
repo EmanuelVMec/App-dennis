@@ -14,6 +14,8 @@ import {
   StatusBar,
 } from "react-native";
 
+import { BASE_URL } from "./config";
+
 export default function InicioApp() {
   const [mensaje, setMensaje] = useState("");
   const [mensajes, setMensajes] = useState<
@@ -29,7 +31,7 @@ export default function InicioApp() {
 
   const cargarMensajes = async () => {
     try {
-      const response = await fetch("http://192.168.11.20:8000/api/messages/", {
+      const response = await fetch("http://192.168.89.18:8000/api/messages/", {
         credentials: "include",
       });
       const data = await response.json();
@@ -57,7 +59,7 @@ export default function InicioApp() {
   const enviarMensaje = async () => {
     if (mensaje.trim() === "") return;
     try {
-      const response = await fetch("http://192.168.11.20:8000/api/send/", {
+      const response = await fetch("http://192.168.89.18:8000/api/send/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
