@@ -42,7 +42,7 @@ export default function InicioApp() {
   const cargarMensajes = async () => {
     if (selectedCarrera === null) return;  // No cargar si no hay carrera seleccionada
     try {
-      const response = await fetch(`http://192.168.100.7:8000/api/messages/${selectedCarrera}/`, {
+      const response = await fetch(`http://192.168.89.18:8000/api/messages/${selectedCarrera}/`, {
         credentials: "include",
       });
       const data = await response.json();
@@ -59,11 +59,19 @@ export default function InicioApp() {
     }
   };
 
-  useEffect(() => {
-    if (selectedCarrera !== null) {
-      cargarMensajes();  // Cargar los mensajes al seleccionar una carrera
-    }
-  }, [selectedCarrera]);
+useEffect(() => {
+  if (selectedCarrera !== null) {
+    cargarMensajes();
+  }
+
+  // Configura el intervalo para que se actualicen los mensajes cada 5 segundos
+  const intervalId = setInterval(() => {
+    cargarMensajes(); // Actualiza los mensajes cada 5 segundos
+  }, 5000); // 5000 ms = 5 segundos
+
+  return () => clearInterval(intervalId);
+}, [selectedCarrera]);
+
 
   useEffect(() => {
     // Desplazar hacia el final cuando nuevos mensajes lleguen
@@ -74,7 +82,7 @@ export default function InicioApp() {
     if (mensaje.trim() === "" || selectedCarrera === null) return; // No enviar si no hay carrera seleccionada
     console.log("Carrera seleccionada:", selectedCarrera);  // Verifica el valor de carrera_id
     try {
-      const response = await fetch("http://192.168.100.7:8000/api/send/", {
+      const response = await fetch("http://192.168.89.18:8000/api/send/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
