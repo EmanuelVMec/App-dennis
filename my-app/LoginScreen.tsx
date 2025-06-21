@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   View,
   TextInput,
-  Button,
   Text,
   StyleSheet,
   Alert,
@@ -10,9 +9,10 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  TouchableOpacity
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { BASE_URL } from "./config"; // ⬅️ Importa tu IP desde config
+import { BASE_URL } from "./config";
 
 export default function LoginScreen() {
   const [username, setUsername] = useState("");
@@ -31,7 +31,7 @@ export default function LoginScreen() {
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include", // importante para mantener sesión
+        credentials: "include",
         body: JSON.stringify({ username, password }),
       });
 
@@ -41,7 +41,7 @@ export default function LoginScreen() {
         throw new Error(data.error || "Error desconocido");
       }
 
-      navigation.navigate("InicioApp"); // ⬅️ Navega al chat si inicia sesión
+      navigation.navigate("InicioApp");
     } catch (error: any) {
       Alert.alert("Error", error.message);
     }
@@ -61,6 +61,7 @@ export default function LoginScreen() {
             value={username}
             onChangeText={setUsername}
             autoCapitalize="none"
+            placeholderTextColor="#888"
           />
           <TextInput
             style={styles.input}
@@ -68,8 +69,11 @@ export default function LoginScreen() {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            placeholderTextColor="#888"
           />
-          <Button title="Iniciar sesión" onPress={handleLogin} />
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
+            <Text style={styles.buttonText}>Iniciar sesión</Text>
+          </TouchableOpacity>
           <Text
             style={styles.link}
             onPress={() => navigation.navigate("RegisterScreen")}
@@ -83,15 +87,42 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: "#FF0000" }, // Fondo rojo
   inner: { flex: 1, justifyContent: "center", padding: 20 },
-  title: { fontSize: 28, marginBottom: 30, textAlign: "center" },
+  title: { 
+    fontSize: 32, 
+    marginBottom: 40, 
+    textAlign: "center", 
+    fontWeight: "bold", 
+    color: "#000000" // Texto negro para el título
+  },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    marginBottom: 15,
-    padding: 10,
-    borderRadius: 8,
+    borderColor: "#000000", // Borde negro
+    marginBottom: 20,
+    padding: 15,
+    borderRadius: 10,
+    backgroundColor: "#fff", // Fondo blanco para inputs
+    fontSize: 16,
+    elevation: 2, // Sombra suave para los campos de texto
   },
-  link: { marginTop: 15, color: "blue", textAlign: "center" },
+  button: {
+    backgroundColor: "#000000", // Botón negro
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    marginBottom: 20,
+    elevation: 4, // Sombra suave para el botón
+  },
+  buttonText: {
+    color: "#fff", // Texto blanco en el botón
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  link: { 
+    marginTop: 20, 
+    color: "#ffffff", // Texto blanco para el enlace
+    textAlign: "center", 
+    fontSize: 16 
+  },
 });

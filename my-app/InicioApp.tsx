@@ -12,23 +12,47 @@ import {
   Button,
   KeyboardAvoidingView,
   Platform,
-  Modal, // Añadimos Modal para el selector de carreras
+  Modal,
+  Alert,  // Importamos Alert para mostrar mensajes de advertencia
 } from "react-native";
 import styles from './styles'; // Importa el archivo de estilos
 
 export default function InicioApp() {
   const [mensaje, setMensaje] = useState("");
-  const [mensajes, setMensajes] = useState<
-    { text: string; reactions: string[]; comments: string[]; selectedCommentIndex: number | null }[]
-  >([]);
+  const [mensajes, setMensajes] = useState<{
+    text: string;
+    reactions: string[];
+    comments: string[];
+    selectedCommentIndex: number | null;
+  }[]>([]);
   const [newComment, setNewComment] = useState<string>("");
   const [isReactionsVisible, setIsReactionsVisible] = useState<boolean>(false);
   const [selectedMessageIndex, setSelectedMessageIndex] = useState<number | null>(null);
-  const [selectedCarrera, setSelectedCarrera] = useState(1); // Por defecto, "Sistemas de Información"
-  const [isModalVisible, setIsModalVisible] = useState(false); // Controla la visibilidad del Modal
+  const [selectedCarrera, setSelectedCarrera] = useState(1);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const emojis = ["👍", "❤️", "😂", "😮", "😢", "😡"];
   const flatListRef = useRef<FlatList>(null);
+
+  // Lista de palabras ofensivas
+const offensiveWords = [
+  "puta", "pendejo", "estúpido", "imbécil", "mierda", "idiota", "concha", "hijo de puta", 
+  "malnacido", "coño", "puto", "zorra", "cabrón", "maricón", "mierdero", "peluca", "chinga", 
+  "hijueputa", "gilipollas", "imbécil", "tonto", "mierda", "carajo", "culero", "pajero", 
+  "chocho", "cacas", "pito", "polla", "cabrón", "bastardo", "marica", "conchudo", "pendejazo", 
+  "culero", "suicida", "putón", "verga", "sodomita", "follón", "follar", "chupapolla", "culos", 
+  "hijoputa", "putísima", "mamada", "cachondo", "chupaculo", "plasta", "petardo", "sinvergüenza", 
+  "muerto", "perra", "trapo", "escarba", "guarro", "fufurufa", "mamón", "seco", "pelotudo", 
+  "chupapitos", "bicho", "cerdo", "come mierda", "madurón", "trozo de mierda", "mujerzuela", 
+  "tragón", "bobalicón", "felpa", "mujercita", "bastarda", "chorra", "rata", "asqueroso", "sin vergüenza", 
+  "vulgar", "jodido", "muerta", "pajote", "cabronazo", "hojalata", "malparido", "cabrona", 
+  "asquerosidad", "puta madre", "camiseta", "borracho", "subnormal", "morra", "follacabras", 
+  "borrachuzo", "caraculo", "joder", "chupacu...", "sobrada", "pirata", "cabronada", "pancha", 
+  "puta madre", "pasota", "coñazo", "engendro", "quema", "matón", "carajista", "comemierda", 
+  "sierrapilla", "bocadillos", "pelaculos", "chusma", "rebuzno", "carretón", "relente", "pelotas",
+  "bryan", "anthony"
+];
+
 
   const carreras = [
     { id: 1, nombre: "Sistemas de Información" },
@@ -66,7 +90,7 @@ export default function InicioApp() {
 
     const intervalId = setInterval(() => {
       cargarMensajes();
-    }, 5000);
+    }, 15000);
 
     return () => clearInterval(intervalId);
   }, [selectedCarrera]);
@@ -75,8 +99,27 @@ export default function InicioApp() {
     flatListRef.current?.scrollToEnd({ animated: true });
   }, [mensajes]);
 
+  // Función de validación de mensaje
+  const validateMessage = (message: string) => {
+    const lowerCaseMessage = message.toLowerCase(); // Convertir a minúsculas
+    for (let word of offensiveWords) {
+      if (lowerCaseMessage.includes(word)) {
+        return true; // Si el mensaje contiene palabras ofensivas, retorna true
+      }
+    }
+    return false; // Si no se encuentran palabras ofensivas, retorna false
+  };
+
+  // Modificamos la función de enviar mensaje para validar antes de enviar
   const enviarMensaje = async () => {
     if (mensaje.trim() === "" || selectedCarrera === null) return;
+
+    // Validación de mensaje
+    if (validateMessage(mensaje)) {
+      Alert.alert("Mensaje Inapropiado", "El mensaje contiene palabras ofensivas. Por favor, edítalo.");
+      return; // No enviamos el mensaje
+    }
+
     try {
       const response = await fetch("http://192.168.11.20:8000/api/send/", {
         method: "POST",
@@ -146,19 +189,16 @@ export default function InicioApp() {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.innerContainer}>
-            {/* Botón hamburguesa para abrir el Modal de selección de carrera */}
             <TouchableOpacity onPress={() => setIsModalVisible(true)} style={styles.hamburgerButton}>
               <Text style={styles.hamburgerText}>☰</Text>
             </TouchableOpacity>
 
-{/* Nombre de la carrera seleccionada */}
-  {selectedCarrera !== null && (
-    <Text style={styles.selectedCarreraText}>
-      {carreras.find(carrera => carrera.id === selectedCarrera)?.nombre}
-    </Text>
-  )}
+            {selectedCarrera !== null && (
+              <Text style={styles.selectedCarreraText}>
+                {carreras.find(carrera => carrera.id === selectedCarrera)?.nombre}
+              </Text>
+            )}
 
-            {/* Modal para seleccionar la carrera */}
             <Modal
               visible={isModalVisible}
               animationType="slide"
