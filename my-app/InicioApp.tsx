@@ -6,15 +6,15 @@ import {
   TouchableOpacity,
   FlatList,
   SafeAreaView,
-  KeyboardAvoidingView,
-  Platform,
   TouchableWithoutFeedback,
   StatusBar,
   Keyboard,
-  Button, // Importa el componente Button
-  StyleSheet, // Asegúrate de importar StyleSheet aquí
+  Button,
+  KeyboardAvoidingView,
+  Platform,
+  Modal, // Añadimos Modal para el selector de carreras
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
+import styles from './styles'; // Importa el archivo de estilos
 
 export default function InicioApp() {
   const [mensaje, setMensaje] = useState("");
@@ -24,7 +24,8 @@ export default function InicioApp() {
   const [newComment, setNewComment] = useState<string>("");
   const [isReactionsVisible, setIsReactionsVisible] = useState<boolean>(false);
   const [selectedMessageIndex, setSelectedMessageIndex] = useState<number | null>(null);
-  const [selectedCarrera, setSelectedCarrera] = useState<number | null>(null);  // Nuevo estado para la carrera seleccionada
+  const [selectedCarrera, setSelectedCarrera] = useState(1); // Por defecto, "Sistemas de Información"
+  const [isModalVisible, setIsModalVisible] = useState(false); // Controla la visibilidad del Modal
 
   const emojis = ["👍", "❤️", "😂", "😮", "😢", "😡"];
   const flatListRef = useRef<FlatList>(null);
@@ -38,11 +39,10 @@ export default function InicioApp() {
     { id: 6, nombre: "Administración de Empresas" },
   ];
 
-  // Función para cargar mensajes por carrera
   const cargarMensajes = async () => {
-    if (selectedCarrera === null) return;  // No cargar si no hay carrera seleccionada
+    if (selectedCarrera === null) return;
     try {
-      const response = await fetch(`http://192.168.89.18:8000/api/messages/${selectedCarrera}/`, {
+      const response = await fetch(`http://192.168.11.20:8000/api/messages/${selectedCarrera}/`, {
         credentials: "include",
       });
       const data = await response.json();
@@ -59,40 +59,36 @@ export default function InicioApp() {
     }
   };
 
-useEffect(() => {
-  if (selectedCarrera !== null) {
-    cargarMensajes();
-  }
+  useEffect(() => {
+    if (selectedCarrera !== null) {
+      cargarMensajes();
+    }
 
-  // Configura el intervalo para que se actualicen los mensajes cada 5 segundos
-  const intervalId = setInterval(() => {
-    cargarMensajes(); // Actualiza los mensajes cada 5 segundos
-  }, 5000); // 5000 ms = 5 segundos
+    const intervalId = setInterval(() => {
+      cargarMensajes();
+    }, 5000);
 
-  return () => clearInterval(intervalId);
-}, [selectedCarrera]);
-
+    return () => clearInterval(intervalId);
+  }, [selectedCarrera]);
 
   useEffect(() => {
-    // Desplazar hacia el final cuando nuevos mensajes lleguen
     flatListRef.current?.scrollToEnd({ animated: true });
   }, [mensajes]);
 
   const enviarMensaje = async () => {
-    if (mensaje.trim() === "" || selectedCarrera === null) return; // No enviar si no hay carrera seleccionada
-    console.log("Carrera seleccionada:", selectedCarrera);  // Verifica el valor de carrera_id
+    if (mensaje.trim() === "" || selectedCarrera === null) return;
     try {
-      const response = await fetch("http://192.168.89.18:8000/api/send/", {
+      const response = await fetch("http://192.168.11.20:8000/api/send/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           text: mensaje,
-          carrera_id: selectedCarrera,  // Envía el ID de la carrera
+          carrera_id: selectedCarrera,
         }),
       });
       if (response.ok) {
-        await cargarMensajes(); // Recargar los mensajes después de enviar
+        await cargarMensajes();
         setMensaje("");
       } else {
         const errorData = await response.json();
@@ -138,29 +134,56 @@ useEffect(() => {
   };
 
   const handleRefresh = () => {
-    cargarMensajes(); // Recargar los mensajes cuando el usuario presione el botón de refrescar
+    cargarMensajes();
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={80}
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={{ flex: 1, padding: 10 }}>
-            {/* Picker para seleccionar la carrera */}
-            <Picker selectedValue={selectedCarrera} onValueChange={setSelectedCarrera}>
-              <Picker.Item label="Selecciona una carrera" value={null} />
-              {carreras.map((carrera) => (
-                <Picker.Item key={carrera.id} label={carrera.nombre} value={carrera.id} />
-              ))}
-            </Picker>
+          <View style={styles.innerContainer}>
+            {/* Botón hamburguesa para abrir el Modal de selección de carrera */}
+            <TouchableOpacity onPress={() => setIsModalVisible(true)} style={styles.hamburgerButton}>
+              <Text style={styles.hamburgerText}>☰</Text>
+            </TouchableOpacity>
 
-            {/* Botón de Refrescar */}
-            <View style={{ alignItems: "flex-end", marginBottom: 10 }}>
+{/* Nombre de la carrera seleccionada */}
+  {selectedCarrera !== null && (
+    <Text style={styles.selectedCarreraText}>
+      {carreras.find(carrera => carrera.id === selectedCarrera)?.nombre}
+    </Text>
+  )}
+
+            {/* Modal para seleccionar la carrera */}
+            <Modal
+              visible={isModalVisible}
+              animationType="slide"
+              transparent={true}
+              onRequestClose={() => setIsModalVisible(false)}
+            >
+              <View style={styles.overlay}>
+                <View style={styles.menu}>
+                  {carreras.map((carrera) => (
+                    <TouchableOpacity
+                      key={carrera.id}
+                      onPress={() => {
+                        setSelectedCarrera(carrera.id);
+                        setIsModalVisible(false);
+                      }}
+                      style={styles.menuItem}
+                    >
+                      <Text style={styles.menuText}>{carrera.nombre}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </Modal>
+
+            <View style={styles.refreshButtonContainer}>
               <Button title="Refrescar" onPress={handleRefresh} />
             </View>
 
@@ -169,65 +192,56 @@ useEffect(() => {
               data={mensajes}
               keyExtractor={(_, index) => index.toString()}
               renderItem={({ item, index }) => (
-                <View style={{ marginBottom: 10, borderWidth: 1, padding: 10, borderRadius: 8 }}>
-                  <Text style={{ fontWeight: "bold" }}>Anónimo</Text>
-                  <Text>{item.text}</Text>
-                  <View style={{ flexDirection: "row", marginTop: 5 }}>
+                <View style={styles.mensajeContainer}>
+                  <Text style={styles.nombre}>Anónimo</Text>
+                  <Text style={styles.textoMensaje}>{item.text}</Text>
+                  <View style={styles.reactionsContainer}>
                     <TouchableOpacity onPress={() => activarReaccion(index)}>
-                      <Text style={{ marginRight: 10 }}>
-                        👍 {item.reactions[0] || "Reaccionar"}
-                      </Text>
+                      <Text style={styles.reactionText}> 👍 {item.reactions[0] || ""}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => activarComentario(index)}>
-                      <Text>💬</Text>
+                      <Text style={styles.commentText}>   💬 </Text>
                     </TouchableOpacity>
                   </View>
                   {selectedMessageIndex === index && isReactionsVisible && (
-                    <View style={{ flexDirection: "row", marginTop: 5 }}>
+                    <View style={styles.reactionList}>
                       {emojis.map((emoji, i) => (
                         <TouchableOpacity key={i} onPress={() => agregarReaccion(index, emoji)}>
-                          <Text style={{ fontSize: 18, marginRight: 5 }}>{emoji}</Text>
+                          <Text style={styles.emojiButton}>{emoji}</Text>
                         </TouchableOpacity>
                       ))}
                     </View>
                   )}
                   {item.comments.map((c, i) => (
-                    <Text key={i} style={{ fontSize: 14, color: "gray" }}>
-                      - {c}
-                    </Text>
+                    <Text key={i} style={styles.commentText}>- {c}</Text>
                   ))}
                   {item.selectedCommentIndex === index && (
-                    <View style={{ flexDirection: "row", marginTop: 5 }}>
+                    <View style={styles.commentInputContainer}>
                       <TextInput
-                        style={{ flex: 1, borderWidth: 1, padding: 5, borderRadius: 5 }}
+                        style={styles.input}
                         placeholder="Comentario..."
                         value={newComment}
                         onChangeText={setNewComment}
                       />
-                      <TouchableOpacity
-                        onPress={() => agregarComentario(index)}
-                        style={{ marginLeft: 5 }}
-                      >
-                        <Text>Comentar</Text>
+                      <TouchableOpacity onPress={() => agregarComentario(index)} style={styles.commentButton}>
+                        <Text style={styles.textoBoton}>Comentar</Text>
                       </TouchableOpacity>
                     </View>
                   )}
                 </View>
               )}
-              contentContainerStyle={{ paddingBottom: 100 }}
+              contentContainerStyle={styles.flatListContainer}
             />
 
-            <View style={{ flexDirection: "row", borderTopWidth: 1, padding: 10 }}>
+            <View style={styles.inputContainer}>
               <TextInput
-                style={{ flex: 1, borderWidth: 1, padding: 10, borderRadius: 10 }}
+                style={styles.input}
                 placeholder="Escribe un mensaje..."
                 value={mensaje}
                 onChangeText={setMensaje}
               />
-              <TouchableOpacity onPress={enviarMensaje} style={{ marginLeft: 10 }}>
-                <Text style={{ padding: 10, backgroundColor: "#25D366", color: "white", borderRadius: 10 }}>
-                  Enviar
-                </Text>
+              <TouchableOpacity onPress={enviarMensaje} style={styles.botonEnviar}>
+                <Text style={styles.textoBoton}>Enviar</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -236,155 +250,3 @@ useEffect(() => {
     </SafeAreaView>
   );
 }
-
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "flex-end",
-    padding: 10,
-  },
-  mensajes: {
-    flexGrow: 1,
-    padding: 15,
-    paddingBottom: 20,
-    justifyContent: "flex-end",
-  },
-  mensajeContainer: {
-    marginBottom: 10,
-    marginTop: 10,
-    alignSelf: "stretch", // Cambié el estilo para que ocupe todo el ancho
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    backgroundColor: "#f8f8f8",
-  },
-  nombre: {
-    fontSize: 12,
-    color: "#555",
-    marginBottom: 5,
-  },
-  burbuja: {
-    backgroundColor: "#DCF8C6",
-    padding: 10,
-    borderRadius: 8,
-    width: "100%", // Esto asegura que el mensaje ocupe todo el ancho de la pantalla
-  },
-  textoMensaje: {
-    fontSize: 16,
-  },
-  reactionsContainer: {
-    flexDirection: "row",
-    marginTop: 10,
-  },
-  likeButton: {
-    marginRight: 10,
-  },
-  commentButton: {},
-  commentText: {
-    marginLeft: 10,
-    fontSize: 14,
-    color: "#555",
-  },
-  inputContainer: {
-    flexDirection: "row",
-    padding: 10,
-    borderTopWidth: 1,
-    borderColor: "#ccc",
-    alignItems: "center",
-    backgroundColor: "#f8f8f8",
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: "#ccc",
-  },
-  botonEnviar: {
-    marginLeft: 10,
-    backgroundColor: "#25D366",
-    borderRadius: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-  },
-  textoBoton: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  hamburgerButton: {
-    padding: 10,
-    position: "absolute",
-    top: Platform.OS === "ios" ? 40 : 20,
-    left: 10,
-    zIndex: 1,
-  },
-  hamburgerText: {
-    fontSize: 30,
-    color: "#5c3d7d",
-  },
-  overlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    zIndex: 1,
-  },
-  menu: {
-    position: "absolute",
-    top: 80,
-    left: 0,
-    backgroundColor: "#5c3d7d",
-    width: 200,
-    padding: 15,
-    borderTopRightRadius: 15,
-    borderBottomRightRadius: 15,
-    zIndex: 2,
-  },
-  menuItem: {
-    padding: 10,
-    marginBottom: 10,
-    backgroundColor: "#3e2c5b",
-    borderRadius: 5,
-  },
-  menuText: {
-    color: "#fff",
-    fontSize: 16,
-  },
-  careerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
-    textAlign: "center", // Centra el texto
-    zIndex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center", // Centra el texto
-    marginTop: Platform.OS === "ios" ? 50 : 30, // Ajusta el margen superior para el header
-  },
-  commentInputContainer: {
-    marginTop: 10,
-    paddingHorizontal: 10,
-    backgroundColor: "#f8f8f8",
-  },
-  reactionList: {
-    flexDirection: "row",
-    marginTop: 10,
-    marginBottom: 10,
-  },
-  emojiButton: {
-    fontSize: 20,
-    marginRight: 10,
-  },
-});
