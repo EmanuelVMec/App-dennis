@@ -65,7 +65,7 @@ export default function InicioApp() {
   const cargarMensajes = async () => {
     if (selectedCarrera === null) return;
     try {
-      const response = await fetch(`http://192.168.233.18:8000/api/messages/${selectedCarrera}/`, {
+      const response = await fetch(`http://192.168.100.7:8000/api/messages/${selectedCarrera}/`, {
         credentials: "include",
       });
       const data = await response.json();
@@ -120,7 +120,7 @@ export default function InicioApp() {
     }
 
     try {
-      const response = await fetch("http://192.168.233.18:8000/api/send/", {
+      const response = await fetch("http://192.168.100.7:8000/api/send/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
