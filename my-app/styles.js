@@ -1,64 +1,58 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Platform } from "react-native";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F7F7F7",
-    padding: 15,
-  },
-  innerContainer: {
-    flex: 1,
-    paddingBottom: 15,
+    backgroundColor: "#e7b3d0ff",
   },
   keyboardAvoidingView: {
     flex: 1,
   },
+  headerFixed: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 40 : 10,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: '#e7b3d0ff',
+    zIndex: 1000,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
   hamburgerButton: {
-    padding: 12,
-    position: "absolute",
-    top:15,
-    left: 15,
-    zIndex: 2,
+    padding: 5,
   },
   hamburgerText: {
     fontSize: 30,
     color: "#007BFF",
   },
-  overlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
+  selectedCarreraText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    textAlign: 'center',
+    flex: 1,
+    marginHorizontal: 10,
   },
-  menu: {
-    backgroundColor: "#FFFFFF",
-    width: 250,
-    borderRadius: 8,
-    padding: 18,
+  refreshButton: {
+    padding: 5,
   },
-  menuItem: {
-    padding: 12,
-    marginBottom: 12,
-    backgroundColor: "#007BFF",
-    borderRadius: 8,
+  refreshText: {
+    fontSize: 20,
+    color: "#007BFF",
   },
-  menuText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-  },
-  refreshButtonContainer: {
-    alignItems: "flex-end",
-    marginBottom: 15,
+  flatListContainer: {
+    paddingTop: 70,
+    paddingBottom: 80,
+    paddingHorizontal: 15,
   },
   mensajeContainer: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#fff0f0ff",
     borderRadius: 15,
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
     padding: 15,
     marginBottom: 15,
     shadowColor: "#000",
@@ -77,7 +71,7 @@ const styles = StyleSheet.create({
     color: "#333333",
   },
   reactionsContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginTop: 10,
   },
   reactionText: {
@@ -89,7 +83,7 @@ const styles = StyleSheet.create({
     color: "#6C6C6C",
   },
   reactionList: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginTop: 12,
   },
   emojiButton: {
@@ -97,25 +91,26 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   inputContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     padding: 12,
     borderTopWidth: 1,
-    borderColor: "#E0E0E0",
-    alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    borderColor: '#E0E0E0',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
   },
   input: {
     flex: 1,
-    backgroundColor: "#FAFAFA",
+    backgroundColor: '#FAFAFA',
     borderRadius: 25,
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: "#BDC3C7",
+    borderColor: '#BDC3C7',
+    maxHeight: 100,
   },
   botonEnviar: {
     marginLeft: 12,
-    backgroundColor: "#007BFF",
+    backgroundColor: "#ff00bfff",
     borderRadius: 25,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -125,28 +120,34 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
-  flatListContainer: {
-    paddingBottom: 80,
-  },
   commentInputContainer: {
     marginTop: 10,
-    flexDirection: "row",
+    flexDirection: 'row',
     paddingHorizontal: 18,
-    backgroundColor: "#F9F9F9",
+    backgroundColor: '#F9F9F9',
   },
-  commentButton: {
-    backgroundColor: "#007BFF",
-    borderRadius: 15,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  selectedCarreraText: {
-  fontSize: 18,
-  color: "#333",
-  marginBottom: 10,  // Un pequeño margen para separarlo de los botones
-  textAlign: "center",
-  fontWeight: "bold",
-},
+  menu: {
+    backgroundColor: '#FFFFFF',
+    width: 250,
+    borderRadius: 8,
+    padding: 18,
+  },
+  menuItem: {
+    padding: 12,
+    marginBottom: 12,
+    backgroundColor: '#db6aa8ff',
+    borderRadius: 8,
+  },
+  menuText: {
+    color: '#000000ff',
+    fontSize: 16,
+  },
 });
 
 export default styles;

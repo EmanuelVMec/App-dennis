@@ -81,7 +81,7 @@ function HomeScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FF0000",
+    backgroundColor: "#db6aa8ff",
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   modalButton: {
-    backgroundColor: "#FF0000",
+    backgroundColor: "#db6aa8ff",
     padding: 12,
     borderRadius: 8,
     alignItems: "center",

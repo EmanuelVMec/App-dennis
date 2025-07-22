@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-f71n#ue652ul6vwq(t!_pb@ie70@&2+mae251=_hnz$e2@nr9s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.11.20', 'localhost', '127.0.0.1','"192.168.89.18','*']
+ALLOWED_HOSTS = ['192.168.11.20', 'localhost', '192.168.100.7','"192.168.89.18','*']
 
 
 
@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'chat',
-    'corsheaders',  # si usarás frontend aparte
+    'corsheaders',  
     'rest_framework',
 ]
 

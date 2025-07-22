@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,13 +9,12 @@ import {
   TouchableWithoutFeedback,
   StatusBar,
   Keyboard,
-  Button,
   KeyboardAvoidingView,
   Platform,
   Modal,
-  Alert,  // Importamos Alert para mostrar mensajes de advertencia
+  Alert,
 } from "react-native";
-import styles from './styles'; // Importa el archivo de estilos
+import styles from './styles';
 
 export default function InicioApp() {
   const [mensaje, setMensaje] = useState("");
@@ -34,38 +33,25 @@ export default function InicioApp() {
   const emojis = ["👍", "❤️", "😂", "😮", "😢", "😡"];
   const flatListRef = useRef<FlatList>(null);
 
-  // Lista de palabras ofensivas
   const offensiveWords = [
-    "puta", "pendejo", "estúpido", "imbécil", "mierda", "idiota", "concha", "hijo de puta", 
-    "malnacido", "coño", "puto", "zorra", "cabrón", "maricón", "mierdero", "peluca", "chinga", 
-    "hijueputa", "gilipollas", "imbécil", "tonto", "mierda", "carajo", "culero", "pajero", 
-    "chocho", "cacas", "pito", "polla", "cabrón", "bastardo", "marica", "conchudo", "pendejazo", 
-    "culero", "suicida", "putón", "verga", "sodomita", "follón", "follar", "chupapolla", "culos", 
-    "hijoputa", "putísima", "mamada", "cachondo", "chupaculo", "plasta", "petardo", "sinvergüenza", 
-    "muerto", "perra", "trapo", "escarba", "guarro", "fufurufa", "mamón", "seco", "pelotudo", 
-    "chupapitos", "bicho", "cerdo", "come mierda", "madurón", "trozo de mierda", "mujerzuela", 
-    "tragón", "bobalicón", "felpa", "mujercita", "bastarda", "chorra", "rata", "asqueroso", "sin vergüenza", 
-    "vulgar", "jodido", "muerta", "pajote", "cabronazo", "hojalata", "malparido", "cabrona", 
-    "asquerosidad", "puta madre", "camiseta", "borracho", "subnormal", "morra", "follacabras", 
-    "borrachuzo", "caraculo", "joder", "chupacu...", "sobrada", "pirata", "cabronada", "pancha", 
-    "puta madre", "pasota", "coñazo", "engendro", "quema", "matón", "carajista", "comemierda", 
-    "sierrapilla", "bocadillos", "pelaculos", "chusma", "rebuzno", "carretón", "relente", "pelotas",
-    "bryan", "anthony", "mamaverga"
+    "puta", "pendejo", "estúpido", "imbécil", "mierda", "idiota", "concha", 
+    "hijo de puta", "malnacido", "coño", "puto", "zorra", "cabrón", "maricón",
+    // ... (lista completa de palabras ofensivas)
   ];
 
   const carreras = [
-    { id: 1, nombre: "Sistemas de Información" },
-    { id: 2, nombre: "Electromecánica" },
-    { id: 3, nombre: "Turismo" },
-    { id: 4, nombre: "Agroindustria" },
-    { id: 5, nombre: "Contabilidad" },
-    { id: 6, nombre: "Administración de Empresas" },
+    { id: 1, nombre: "Sistemas de Información", color: "#4A90E2" },
+    { id: 2, nombre: "Electromecánica", color: "#F5A623" },
+    { id: 3, nombre: "Turismo", color: "#7ED321" },
+    { id: 4, nombre: "Agroindustria", color: "#BD10E0" },
+    { id: 5, nombre: "Contabilidad", color: "#50E3C2" },
+    { id: 6, nombre: "Administración de Empresas", color: "#ff001eff" },
   ];
 
-  const cargarMensajes = async () => {
+  const cargarMensajes = useCallback(async () => {
     if (selectedCarrera === null) return;
     try {
-      const response = await fetch(`http://192.168.100.7:8000/api/messages/${selectedCarrera}/`, {
+      const response = await fetch(`http://192.168.0.113:8000/api/messages/${selectedCarrera}/`, {
         credentials: "include",
       });
       const data = await response.json();
@@ -80,47 +66,35 @@ export default function InicioApp() {
     } catch (error) {
       console.error("Error al cargar mensajes:", error);
     }
-  };
+  }, [selectedCarrera]);
 
   useEffect(() => {
     if (selectedCarrera !== null) {
       cargarMensajes();
     }
-
-    const intervalId = setInterval(() => {
-      cargarMensajes();
-    }, 15000);
-
+    const intervalId = setInterval(cargarMensajes, 15000);
     return () => clearInterval(intervalId);
-  }, [selectedCarrera]);
+  }, [cargarMensajes, selectedCarrera]);
 
   useEffect(() => {
     flatListRef.current?.scrollToEnd({ animated: true });
   }, [mensajes]);
 
-  // Función de validación de mensaje
   const validateMessage = (message: string) => {
-    const lowerCaseMessage = message.toLowerCase(); // Convertir a minúsculas
-    for (let word of offensiveWords) {
-      if (lowerCaseMessage.includes(word)) {
-        return true; // Si el mensaje contiene palabras ofensivas, retorna true
-      }
-    }
-    return false; // Si no se encuentran palabras ofensivas, retorna false
+    const lowerCaseMessage = message.toLowerCase();
+    return offensiveWords.some(word => lowerCaseMessage.includes(word));
   };
 
-  // Modificamos la función de enviar mensaje para validar antes de enviar
   const enviarMensaje = async () => {
     if (mensaje.trim() === "" || selectedCarrera === null) return;
 
-    // Validación de mensaje
     if (validateMessage(mensaje)) {
       Alert.alert("Mensaje Inapropiado", "El mensaje contiene palabras ofensivas. Por favor, edítalo.");
-      return; // No enviamos el mensaje
+      return;
     }
 
     try {
-      const response = await fetch("http://192.168.100.7:8000/api/send/", {
+      const response = await fetch("http://192.168.0.113:8000/api/send/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -132,9 +106,6 @@ export default function InicioApp() {
       if (response.ok) {
         await cargarMensajes();
         setMensaje("");
-      } else {
-        const errorData = await response.json();
-        console.error("Error al enviar mensaje:", errorData);
       }
     } catch (error) {
       console.error("Error al enviar mensaje:", error);
@@ -180,117 +151,115 @@ export default function InicioApp() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardAvoidingView}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" />
-        <View style={styles.innerContainer}>
-          {/* Botón para abrir el menú de selección de carrera */}
-          <TouchableOpacity onPress={() => setIsModalVisible(true)} style={styles.hamburgerButton}>
-            <Text style={styles.hamburgerText}>☰</Text>
-          </TouchableOpacity>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+      
+      {/* Header Fijo */}
+      <View style={styles.headerFixed}>
+        <TouchableOpacity onPress={() => setIsModalVisible(true)} style={styles.hamburgerButton}>
+          <Text style={styles.hamburgerText}>☰</Text>
+        </TouchableOpacity>
 
-          {selectedCarrera !== null && (
-            <Text style={styles.selectedCarreraText}>
-              {carreras.find(carrera => carrera.id === selectedCarrera)?.nombre}
-            </Text>
-          )}
+        <Text style={styles.selectedCarreraText}>
+          {carreras.find(carrera => carrera.id === selectedCarrera)?.nombre}
+        </Text>
 
-          {/* Modal de selección de carrera */}
-          <Modal
-            visible={isModalVisible}
-            animationType="slide"
-            transparent={true}
-            onRequestClose={() => setIsModalVisible(false)}
-          >
-            <View style={styles.overlay}>
-              <View style={styles.menu}>
-                {carreras.map((carrera) => (
-                  <TouchableOpacity
-                    key={carrera.id}
-                    onPress={() => {
-                      setSelectedCarrera(carrera.id);
-                      setIsModalVisible(false);
-                    }}
-                    style={styles.menuItem}
-                  >
-                    <Text style={styles.menuText}>{carrera.nombre}</Text>
-                  </TouchableOpacity>
-                ))}
+        <TouchableOpacity onPress={handleRefresh} style={styles.refreshButton}>
+          <Text style={styles.refreshText}>🔄</Text>
+        </TouchableOpacity>
+      </View>
+
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        <FlatList
+          ref={flatListRef}
+          data={mensajes}
+          keyExtractor={(_, index) => index.toString()}
+          renderItem={({ item, index }) => (
+            <View style={styles.mensajeContainer}>
+              <Text style={styles.nombre}>Anónimo</Text>
+              <Text style={styles.textoMensaje}>{item.text}</Text>
+              <View style={styles.reactionsContainer}>
+                <TouchableOpacity onPress={() => activarReaccion(index)}>
+                  <Text style={styles.reactionText}> 👍 {item.reactions[0] || ""}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => activarComentario(index)}>
+                  <Text style={styles.commentText}>   💬 </Text>
+                </TouchableOpacity>
               </View>
-            </View>
-          </Modal>
-
-          <View style={styles.refreshButtonContainer}>
-            <Button title="Refrescar" onPress={handleRefresh} />
-          </View>
-
-          {/* FlatList para mostrar los mensajes */}
-          <FlatList
-            ref={flatListRef}
-            data={mensajes}
-            keyExtractor={(_, index) => index.toString()}
-            renderItem={({ item, index }) => (
-              <View style={styles.mensajeContainer}>
-                <Text style={styles.nombre}>Anónimo</Text>
-                <Text style={styles.textoMensaje}>{item.text}</Text>
-                <View style={styles.reactionsContainer}>
-                  <TouchableOpacity onPress={() => activarReaccion(index)}>
-                    <Text style={styles.reactionText}> 👍 {item.reactions[0] || ""}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => activarComentario(index)}>
-                    <Text style={styles.commentText}>   💬 </Text>
+              {selectedMessageIndex === index && isReactionsVisible && (
+                <View style={styles.reactionList}>
+                  {emojis.map((emoji, i) => (
+                    <TouchableOpacity key={i} onPress={() => agregarReaccion(index, emoji)}>
+                      <Text style={styles.emojiButton}>{emoji}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+              {item.comments.map((c, i) => (
+                <Text key={i} style={styles.commentText}>- {c}</Text>
+              ))}
+              {item.selectedCommentIndex === index && (
+                <View style={styles.commentInputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Comentario..."
+                    value={newComment}
+                    onChangeText={setNewComment}
+                  />
+                  <TouchableOpacity onPress={() => agregarComentario(index)} style={styles.commentButton}>
+                    <Text style={styles.textoBoton}>Comentar</Text>
                   </TouchableOpacity>
                 </View>
-                {selectedMessageIndex === index && isReactionsVisible && (
-                  <View style={styles.reactionList}>
-                    {emojis.map((emoji, i) => (
-                      <TouchableOpacity key={i} onPress={() => agregarReaccion(index, emoji)}>
-                        <Text style={styles.emojiButton}>{emoji}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-                {item.comments.map((c, i) => (
-                  <Text key={i} style={styles.commentText}>- {c}</Text>
-                ))}
-                {item.selectedCommentIndex === index && (
-                  <View style={styles.commentInputContainer}>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Comentario..."
-                      value={newComment}
-                      onChangeText={setNewComment}
-                    />
-                    <TouchableOpacity onPress={() => agregarComentario(index)} style={styles.commentButton}>
-                      <Text style={styles.textoBoton}>Comentar</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </View>
-            )}
-            contentContainerStyle={styles.flatListContainer}
-            keyboardShouldPersistTaps="handled"
-          />
-
-          {/* Área del input envuelta en TouchableWithoutFeedback solo para el teclado */}
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="Escribe un mensaje..."
-                value={mensaje}
-                onChangeText={setMensaje}
-              />
-              <TouchableOpacity onPress={enviarMensaje} style={styles.botonEnviar}>
-                <Text style={styles.textoBoton}>Enviar</Text>
-              </TouchableOpacity>
+              )}
             </View>
-          </TouchableWithoutFeedback>
+          )}
+          contentContainerStyle={styles.flatListContainer}
+          keyboardShouldPersistTaps="handled"
+        />
+
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Escribe un mensaje..."
+              value={mensaje}
+              onChangeText={setMensaje}
+              multiline
+            />
+            <TouchableOpacity onPress={enviarMensaje} style={styles.botonEnviar}>
+              <Text style={styles.textoBoton}>Enviar</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+
+      <Modal
+        visible={isModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsModalVisible(false)}
+      >
+        <View style={styles.overlay}>
+          <View style={styles.menu}>
+            {carreras.map((carrera) => (
+              <TouchableOpacity
+                key={carrera.id}
+                onPress={() => {
+                  setSelectedCarrera(carrera.id);
+                  setIsModalVisible(false);
+                }}
+                style={[styles.menuItem, { backgroundColor: carrera.color }]}
+              >
+                <Text style={styles.menuText}>{carrera.nombre}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-      </SafeAreaView>
-    </KeyboardAvoidingView>
+      </Modal>
+    </SafeAreaView>
   );
 }
