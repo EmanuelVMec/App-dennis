@@ -33,10 +33,21 @@ export default function InicioApp() {
   const emojis = ["👍", "❤️", "😂", "😮", "😢", "😡"];
   const flatListRef = useRef<FlatList>(null);
 
-  const offensiveWords = [
-    "puta", "pendejo", "estúpido", "imbécil", "mierda", "idiota", "concha", 
-    "hijo de puta", "malnacido", "coño", "puto", "zorra", "cabrón", "maricón",
-    // ... (lista completa de palabras ofensivas)
+const offensiveWords = [
+    "puta", "pendejo", "estúpido", "imbécil", "mierda", "idiota", "concha", "hijo de puta", 
+    "malnacido", "coño", "puto", "zorra", "cabrón", "maricón", "mierdero", "peluca", "chinga", 
+    "hijueputa", "gilipollas", "imbécil", "tonto", "mierda", "carajo", "culero", "pajero", 
+    "chocho", "cacas", "pito", "polla", "cabrón", "bastardo", "marica", "conchudo", "pendejazo", 
+    "culero", "suicida", "putón", "verga", "sodomita", "follón", "follar", "chupapolla", "culos", 
+    "hijoputa", "putísima", "mamada", "cachondo", "chupaculo", "plasta", "petardo", "sinvergüenza", 
+    "muerto", "perra", "trapo", "escarba", "guarro", "fufurufa", "mamón", "seco", "pelotudo", 
+    "chupapitos", "bicho", "cerdo", "come mierda", "madurón", "trozo de mierda", "mujerzuela", 
+    "tragón", "bobalicón", "felpa", "mujercita", "bastarda", "chorra", "rata", "asqueroso", "sin vergüenza", 
+    "vulgar", "jodido", "muerta", "pajote", "cabronazo", "hojalata", "malparido", "cabrona", 
+    "asquerosidad", "puta madre", "camiseta", "borracho", "subnormal", "morra", "follacabras", 
+    "borrachuzo", "caraculo", "joder", "chupacu...", "sobrada", "pirata", "cabronada", "pancha", 
+    "puta madre", "pasota", "coñazo", "engendro", "quema", "matón", "carajista", "comemierda", 
+    "sierrapilla", "bocadillos", "pelaculos", "chusma", "rebuzno", "carretón", "relente", "pelotas",
   ];
 
   const carreras = [
@@ -51,7 +62,7 @@ export default function InicioApp() {
   const cargarMensajes = useCallback(async () => {
     if (selectedCarrera === null) return;
     try {
-      const response = await fetch(`http://192.168.0.113:8000/api/messages/${selectedCarrera}/`, {
+      const response = await fetch(`http://192.168.233.18:8000/api/messages/${selectedCarrera}/`, {
         credentials: "include",
       });
       const data = await response.json();
@@ -72,7 +83,7 @@ export default function InicioApp() {
     if (selectedCarrera !== null) {
       cargarMensajes();
     }
-    const intervalId = setInterval(cargarMensajes, 15000);
+    const intervalId = setInterval(cargarMensajes, 95000);
     return () => clearInterval(intervalId);
   }, [cargarMensajes, selectedCarrera]);
 
@@ -94,7 +105,7 @@ export default function InicioApp() {
     }
 
     try {
-      const response = await fetch("http://192.168.0.113:8000/api/send/", {
+      const response = await fetch("http://192.168.233.18:8000/api/send/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
